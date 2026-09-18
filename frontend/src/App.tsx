@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Home from './pages/Home';
+import ProjectDashboard from './pages/ProjectDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
@@ -12,6 +13,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/project/:projectKey"
+          element={
+            <ProtectedRoute>
+              <ProjectDashboard />
             </ProtectedRoute>
           }
         />

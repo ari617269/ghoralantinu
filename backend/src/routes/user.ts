@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import db from '../db/knex';
 import { activeLogin } from '../middleware/activeLogin';
 
@@ -11,7 +12,7 @@ interface LoginBody {
   password: string;
 }
 
-router.post('/login', async (req: Request<{}, {}, LoginBody>, res: Response): Promise<void> => {
+router.post('/login', async (req: Request<Record<string, never>, Record<string, never>, LoginBody>, res: Response): Promise<void> => {
   try {
     const { username, password } = req.body;
 
@@ -33,12 +34,15 @@ router.post('/login', async (req: Request<{}, {}, LoginBody>, res: Response): Pr
       return;
     }
 
-    const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET!, {
-      expiresIn: '1h',
-    });
+    const token = jwt.sign(
+      { id: user.id, username: user.username, jti: crypto.randomUUID() },
+      process.env.JWT_SECRET!,
+      { expiresIn: '1h' }
+    );
 
     res.json({ token, user: { id: user.id, username: user.username } });
   } catch (error) {
+    console.error('[POST /login]', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

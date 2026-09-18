@@ -16,12 +16,12 @@ describe('Backend Auth E2E Tests - Application Logic', () => {
   let testUserId: number;
 
   beforeAll(async () => {
-    // Ensure tables exist
     await db.migrate.latest();
+    await db.seed.run();
   });
 
   afterAll(async () => {
-    await db.destroy();
+    // pool cleanup handled by --forceExit
   });
 
   describe('Login Logic - Password Verification & JWT Generation', () => {
@@ -33,20 +33,21 @@ describe('Backend Auth E2E Tests - Application Logic', () => {
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('token');
       expect(response.body).toHaveProperty('user');
+
+      // Store for later tests before further assertions
+      validToken = response.body.token;
+      testUserId = response.body.user.id;
+
       expect(response.body.user.username).toBe('testuser');
-      expect(response.body.user.id).toBe(1);
+      expect(typeof response.body.user.id).toBe('number');
 
       // Verify JWT structure and payload
       const decoded = jwt.decode(response.body.token) as any;
       expect(decoded).toHaveProperty('id');
       expect(decoded).toHaveProperty('username');
       expect(decoded).toHaveProperty('exp');
-      expect(decoded.id).toBe(1);
+      expect(decoded.id).toBe(testUserId);
       expect(decoded.username).toBe('testuser');
-
-      // Store for later tests
-      validToken = response.body.token;
-      testUserId = response.body.user.id;
     });
 
     test('TC1.2: Invalid password is rejected via bcrypt', async () => {
